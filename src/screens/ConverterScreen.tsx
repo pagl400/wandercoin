@@ -1,3 +1,5 @@
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -8,9 +10,13 @@ import { SwapButton } from '../components/SwapButton';
 import { useCurrencies } from '../hooks/useCurrencies';
 import { useLatestRate } from '../hooks/useLatestRate';
 import { useAppStore } from '../store/useAppStore';
+import type { RootStackParamList } from '../types/navigation';
 import { parseAmount } from '../utils/format';
 
+type Nav = NativeStackNavigationProp<RootStackParamList, 'Converter'>;
+
 export function ConverterScreen() {
+  const navigation = useNavigation<Nav>();
   const from = useAppStore((s) => s.from);
   const to = useAppStore((s) => s.to);
   const amount = useAppStore((s) => s.amount);
@@ -35,11 +41,19 @@ export function ConverterScreen() {
 
         <View style={styles.row}>
           <View style={styles.flex}>
-            <CurrencyButton code={from} name={currencies?.[from]} />
+            <CurrencyButton
+              code={from}
+              name={currencies?.[from]}
+              onPress={() => navigation.navigate('CurrencyPicker', { field: 'from' })}
+            />
           </View>
           <SwapButton onPress={swap} />
           <View style={styles.flex}>
-            <CurrencyButton code={to} name={currencies?.[to]} />
+            <CurrencyButton
+              code={to}
+              name={currencies?.[to]}
+              onPress={() => navigation.navigate('CurrencyPicker', { field: 'to' })}
+            />
           </View>
         </View>
 
