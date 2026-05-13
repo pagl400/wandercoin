@@ -1,6 +1,7 @@
 export type RootStackParamList = {
   Converter: undefined;
   CurrencyPicker: { field: 'from' | 'to' };
+  Chart: undefined;
 };
 
 declare global {

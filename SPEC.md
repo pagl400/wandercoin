@@ -143,7 +143,7 @@ Verhalten:
 ### 5.2 Chart-Screen
 
 - Großes Line-Chart in der Mitte
-- Zeitbereich-Tabs darüber: **1W | 1M | 3M | 6M | 1J | Max**
+- Zeitbereich-Tabs darüber: **1W | 1M | 3M | 6M | 1J | 5J** (Max wurde durch 5J ersetzt — 27 Jahre EZB-Historie ist unnötig groß; Update 2026-05-14)
 - Tooltip beim Tippen auf einen Punkt: Datum + Kurs
 - Unter dem Chart: Min / Max / Durchschnitt für gewählten Bereich
 - Wochenend-Lücken: Linie verbindet durch (kein optisches Stolpern)

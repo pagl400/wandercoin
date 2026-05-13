@@ -33,3 +33,17 @@ export async function clearCache(): Promise<void> {
   const ours = keys.filter((k) => k.startsWith(PREFIX));
   if (ours.length > 0) await AsyncStorage.multiRemove(ours);
 }
+
+export async function getRaw<T>(key: string): Promise<T | null> {
+  const raw = await AsyncStorage.getItem(PREFIX + key);
+  if (raw === null) return null;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
+}
+
+export async function setRaw<T>(key: string, value: T): Promise<void> {
+  await AsyncStorage.setItem(PREFIX + key, JSON.stringify(value));
+}

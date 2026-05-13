@@ -1,10 +1,11 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Dimensions, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AmountInput } from '../components/AmountInput';
 import { CurrencyButton } from '../components/CurrencyButton';
+import { MiniChart } from '../components/MiniChart';
 import { ResultDisplay } from '../components/ResultDisplay';
 import { SwapButton } from '../components/SwapButton';
 import { useCurrencies } from '../hooks/useCurrencies';
@@ -73,6 +74,14 @@ export function ConverterScreen() {
             <ActivityIndicator />
           )}
         </View>
+
+        <Pressable
+          onPress={() => navigation.navigate('Chart')}
+          accessibilityRole="button"
+          accessibilityLabel="Open chart"
+        >
+          <MiniChart from={from} to={to} width={Dimensions.get('window').width - 48} />
+        </Pressable>
 
         {rate !== null ? (
           <Text style={styles.footer}>Data: ECB · As of {rate.date}</Text>
