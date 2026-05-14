@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import { DEFAULT_DECIMALS } from '../constants';
+import { useTheme } from '../theme/useTheme';
 import { formatAmount } from '../utils/format';
 
 interface ResultDisplayProps {
@@ -20,13 +21,14 @@ export function ResultDisplay({
   decimals = DEFAULT_DECIMALS,
   stale = false,
 }: ResultDisplayProps) {
+  const c = useTheme();
   const converted = amount * rate;
   return (
     <View style={styles.container}>
-      <Text style={[styles.amount, stale && styles.dim]}>
+      <Text style={[styles.amount, { color: stale ? c.textFaint : c.text }]}>
         {formatAmount(converted, decimals)} {to}
       </Text>
-      <Text style={styles.rate}>
+      <Text style={[styles.rate, { color: c.textMuted }]}>
         1 {from} = {formatAmount(rate, 4)} {to}
       </Text>
     </View>
@@ -35,7 +37,6 @@ export function ResultDisplay({
 
 const styles = StyleSheet.create({
   container: { alignItems: 'center', gap: 4 },
-  amount: { fontSize: 36, fontWeight: '700', color: '#111' },
-  dim: { color: '#999' },
-  rate: { fontSize: 13, color: '#666' },
+  amount: { fontSize: 36, fontWeight: '700' },
+  rate: { fontSize: 13 },
 });

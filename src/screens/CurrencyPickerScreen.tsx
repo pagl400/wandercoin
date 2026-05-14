@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useCurrencies } from '../hooks/useCurrencies';
 import { useAppStore } from '../store/useAppStore';
+import { useTheme } from '../theme/useTheme';
 import type { RootStackParamList } from '../types/navigation';
 import { currencyToFlag } from '../utils/flags';
 
@@ -31,6 +32,7 @@ export function CurrencyPickerScreen() {
   const navigation = useNavigation<Nav>();
   const { params } = useRoute<PickerRoute>();
   const field = params.field;
+  const c = useTheme();
 
   const { data: currencies, loading, error } = useCurrencies();
   const favorites = useAppStore((s) => s.favorites);
@@ -62,28 +64,31 @@ export function CurrencyPickerScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'left', 'right', 'bottom']}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: c.bg }]}
+      edges={['top', 'left', 'right', 'bottom']}
+    >
       <View style={styles.header}>
-        <Text style={styles.title}>Select currency</Text>
+        <Text style={[styles.title, { color: c.text }]}>Select currency</Text>
         <Pressable onPress={() => navigation.goBack()} hitSlop={12}>
-          <Text style={styles.close}>Done</Text>
+          <Text style={[styles.close, { color: c.accent }]}>Done</Text>
         </Pressable>
       </View>
 
       <TextInput
-        style={styles.search}
+        style={[styles.search, { backgroundColor: c.inputBg, color: c.inputText }]}
         value={query}
         onChangeText={setQuery}
         placeholder="Search code or name"
-        placeholderTextColor="#9ca3af"
+        placeholderTextColor={c.inputPlaceholder}
         autoCorrect={false}
         autoCapitalize="none"
       />
 
       {error !== null ? (
-        <Text style={styles.error}>{error}</Text>
+        <Text style={[styles.error, { color: c.danger }]}>{error}</Text>
       ) : loading && currencies === null ? (
-        <ActivityIndicator style={styles.loader} />
+        <ActivityIndicator style={styles.loader} color={c.text} />
       ) : (
         <FlatList
           data={rows}
@@ -91,13 +96,16 @@ export function CurrencyPickerScreen() {
           keyboardShouldPersistTaps="handled"
           renderItem={({ item }) => (
             <Pressable
-              style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+              style={({ pressed }) => [
+                styles.row,
+                pressed && { backgroundColor: c.cardPressed },
+              ]}
               onPress={() => select(item.code)}
             >
               <Text style={styles.flag}>{currencyToFlag(item.code)}</Text>
               <View style={styles.rowText}>
-                <Text style={styles.code}>{item.code}</Text>
-                <Text style={styles.name} numberOfLines={1}>
+                <Text style={[styles.code, { color: c.text }]}>{item.code}</Text>
+                <Text style={[styles.name, { color: c.textMuted }]} numberOfLines={1}>
                   {item.name}
                 </Text>
               </View>
@@ -107,12 +115,16 @@ export function CurrencyPickerScreen() {
                 accessibilityRole="button"
                 accessibilityLabel={item.favorite ? 'Remove favorite' : 'Add favorite'}
               >
-                <Text style={[styles.star, item.favorite && styles.starActive]}>★</Text>
+                <Text style={[styles.star, { color: item.favorite ? c.starActive : c.star }]}>
+                  ★
+                </Text>
               </Pressable>
             </Pressable>
           )}
           ListEmptyComponent={
-            <Text style={styles.empty}>No currencies match &ldquo;{query}&rdquo;.</Text>
+            <Text style={[styles.empty, { color: c.textFaint }]}>
+              No currencies match &ldquo;{query}&rdquo;.
+            </Text>
           }
         />
       )}
@@ -121,7 +133,7 @@ export function CurrencyPickerScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -130,17 +142,15 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 12,
   },
-  title: { fontSize: 20, fontWeight: '700', color: '#111' },
-  close: { fontSize: 16, color: '#0a84ff', fontWeight: '600' },
+  title: { fontSize: 20, fontWeight: '700' },
+  close: { fontSize: 16, fontWeight: '600' },
   search: {
     marginHorizontal: 20,
     marginBottom: 12,
     paddingHorizontal: 14,
     paddingVertical: 10,
-    backgroundColor: '#f3f4f6',
     borderRadius: 10,
     fontSize: 16,
-    color: '#111',
   },
   row: {
     flexDirection: 'row',
@@ -149,14 +159,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
   },
-  rowPressed: { backgroundColor: '#f9fafb' },
   flag: { fontSize: 24 },
   rowText: { flex: 1 },
-  code: { fontSize: 16, fontWeight: '600', color: '#111' },
-  name: { fontSize: 12, color: '#666' },
-  star: { fontSize: 22, color: '#d1d5db' },
-  starActive: { color: '#fbbf24' },
-  empty: { textAlign: 'center', color: '#888', marginTop: 32 },
-  error: { textAlign: 'center', color: '#c00', marginTop: 32, paddingHorizontal: 20 },
+  code: { fontSize: 16, fontWeight: '600' },
+  name: { fontSize: 12 },
+  star: { fontSize: 22 },
+  empty: { textAlign: 'center', marginTop: 32 },
+  error: { textAlign: 'center', marginTop: 32, paddingHorizontal: 20 },
   loader: { marginTop: 24 },
 });

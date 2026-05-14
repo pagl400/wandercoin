@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { useTheme } from '../theme/useTheme';
 import type { TimeRange } from '../utils/dates';
 import { TIME_RANGES } from '../utils/dates';
 
@@ -9,19 +10,30 @@ interface TimeRangeTabsProps {
 }
 
 export function TimeRangeTabs({ value, onChange }: TimeRangeTabsProps) {
+  const c = useTheme();
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: c.card }]}>
       {TIME_RANGES.map((r) => {
         const active = r === value;
         return (
           <Pressable
             key={r}
             onPress={() => onChange(r)}
-            style={[styles.tab, active && styles.tabActive]}
+            style={[styles.tab, active && { backgroundColor: c.bg }]}
             accessibilityRole="tab"
             accessibilityState={{ selected: active }}
           >
-            <Text style={[styles.label, active && styles.labelActive]}>{r}</Text>
+            <Text
+              style={[
+                styles.label,
+                {
+                  color: active ? c.text : c.textMuted,
+                  fontWeight: active ? '600' : '500',
+                },
+              ]}
+            >
+              {r}
+            </Text>
           </Pressable>
         );
       })}
@@ -32,7 +44,6 @@ export function TimeRangeTabs({ value, onChange }: TimeRangeTabsProps) {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: '#f3f4f6',
     borderRadius: 10,
     padding: 4,
   },
@@ -42,14 +53,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 8,
   },
-  tabActive: {
-    backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowOffset: { width: 0, height: 1 },
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  label: { fontSize: 13, fontWeight: '500', color: '#666' },
-  labelActive: { color: '#111', fontWeight: '600' },
+  label: { fontSize: 13 },
 });

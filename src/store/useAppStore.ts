@@ -11,7 +11,7 @@ import {
 } from '../constants';
 
 export type Theme = 'system' | 'light' | 'dark';
-export type Decimals = 2 | 4 | 6;
+export type Decimals = 0 | 2 | 4;
 
 interface AppState {
   from: string;

@@ -1,18 +1,24 @@
 import { Pressable, StyleSheet, Text } from 'react-native';
 
+import { useTheme } from '../theme/useTheme';
+
 interface SwapButtonProps {
   onPress: () => void;
 }
 
 export function SwapButton({ onPress }: SwapButtonProps) {
+  const c = useTheme();
   return (
     <Pressable
-      style={({ pressed }) => [styles.button, pressed && styles.pressed]}
+      style={({ pressed }) => [
+        styles.button,
+        { backgroundColor: c.swapBg, opacity: pressed ? 0.7 : 1 },
+      ]}
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel="Swap currencies"
     >
-      <Text style={styles.icon}>⇅</Text>
+      <Text style={[styles.icon, { color: c.swapFg }]}>⇅</Text>
     </Pressable>
   );
 }
@@ -22,10 +28,8 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#111',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  pressed: { opacity: 0.7 },
-  icon: { fontSize: 20, color: '#fff', fontWeight: '600' },
+  icon: { fontSize: 20, fontWeight: '600' },
 });

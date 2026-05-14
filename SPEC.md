@@ -159,7 +159,7 @@ Verhalten:
 ### 5.4 Settings-Screen
 
 - Theme: System / Hell / Dunkel
-- Dezimalstellen: 2 / 4 / 6
+- Dezimalstellen: 0 / 2 / 4 (Update 2026-05-14: Frankfurter liefert max 4 Nachkommastellen, 6 ergibt nur Nullen)
 - Favoriten verwalten
 - "Über die App" mit Datenquelle und Version
 - Datenschutz-Link (URL noch zu definieren)

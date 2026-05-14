@@ -2,6 +2,7 @@ import { StyleSheet, View } from 'react-native';
 import { LineChart } from 'react-native-gifted-charts';
 
 import { useTimeSeries } from '../hooks/useTimeSeries';
+import { useTheme } from '../theme/useTheme';
 import { computeYScale } from '../utils/chartScale';
 
 interface MiniChartProps {
@@ -12,6 +13,7 @@ interface MiniChartProps {
 }
 
 export function MiniChart({ from, to, width, height = 60 }: MiniChartProps) {
+  const c = useTheme();
   const { data } = useTimeSeries(from, to, '1M');
 
   if (data.length < 2) {
@@ -41,8 +43,8 @@ export function MiniChart({ from, to, width, height = 60 }: MiniChartProps) {
         yAxisColor="transparent"
         curved
         thickness={2}
-        color="#0a84ff"
-        startFillColor="#0a84ff"
+        color={c.chartLine}
+        startFillColor={c.chartFill}
         startOpacity={0.18}
         endOpacity={0}
         areaChart

@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ActivityIndicator, Dimensions, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -11,6 +12,7 @@ import { SwapButton } from '../components/SwapButton';
 import { useCurrencies } from '../hooks/useCurrencies';
 import { useLatestRate } from '../hooks/useLatestRate';
 import { useAppStore } from '../store/useAppStore';
+import { useTheme } from '../theme/useTheme';
 import type { RootStackParamList } from '../types/navigation';
 import { parseAmount } from '../utils/format';
 
@@ -18,6 +20,8 @@ type Nav = NativeStackNavigationProp<RootStackParamList, 'Converter'>;
 
 export function ConverterScreen() {
   const navigation = useNavigation<Nav>();
+  const c = useTheme();
+
   const from = useAppStore((s) => s.from);
   const to = useAppStore((s) => s.to);
   const amount = useAppStore((s) => s.amount);
@@ -32,9 +36,17 @@ export function ConverterScreen() {
   const rateValue = rate?.rates[to];
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: c.bg }]} edges={['top', 'left', 'right']}>
       <View style={styles.header}>
-        <Text style={styles.title}>Wandercoin</Text>
+        <Text style={[styles.title, { color: c.text }]}>Wandercoin</Text>
+        <Pressable
+          onPress={() => navigation.navigate('Settings')}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Open settings"
+        >
+          <Ionicons name="settings-outline" size={22} color={c.text} />
+        </Pressable>
       </View>
 
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
@@ -60,7 +72,7 @@ export function ConverterScreen() {
 
         <View style={styles.resultArea}>
           {rateErr !== null ? (
-            <Text style={styles.error}>{rateErr}</Text>
+            <Text style={[styles.error, { color: c.danger }]}>{rateErr}</Text>
           ) : rateValue !== undefined && rate !== null ? (
             <ResultDisplay
               amount={numericAmount}
@@ -71,7 +83,7 @@ export function ConverterScreen() {
               stale={rateLoading}
             />
           ) : (
-            <ActivityIndicator />
+            <ActivityIndicator color={c.text} />
           )}
         </View>
 
@@ -84,7 +96,7 @@ export function ConverterScreen() {
         </Pressable>
 
         {rate !== null ? (
-          <Text style={styles.footer}>Data: ECB · As of {rate.date}</Text>
+          <Text style={[styles.footer, { color: c.textFaint }]}>Data: ECB · As of {rate.date}</Text>
         ) : null}
       </ScrollView>
     </SafeAreaView>
@@ -92,13 +104,20 @@ export function ConverterScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  header: { paddingHorizontal: 24, paddingTop: 8, paddingBottom: 8 },
-  title: { fontSize: 28, fontWeight: '700', color: '#111' },
+  container: { flex: 1 },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    paddingTop: 8,
+    paddingBottom: 8,
+  },
+  title: { fontSize: 28, fontWeight: '700' },
   content: { paddingHorizontal: 24, gap: 24, paddingBottom: 48 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   flex: { flex: 1 },
   resultArea: { minHeight: 80, alignItems: 'center', justifyContent: 'center' },
-  error: { color: '#c00', textAlign: 'center' },
-  footer: { textAlign: 'center', fontSize: 12, color: '#888' },
+  error: { textAlign: 'center' },
+  footer: { textAlign: 'center', fontSize: 12 },
 });

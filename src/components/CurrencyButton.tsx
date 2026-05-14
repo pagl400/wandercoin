@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { useTheme } from '../theme/useTheme';
 import { currencyToFlag } from '../utils/flags';
 
 interface CurrencyButtonProps {
@@ -9,17 +10,21 @@ interface CurrencyButtonProps {
 }
 
 export function CurrencyButton({ code, name, onPress }: CurrencyButtonProps) {
+  const c = useTheme();
   return (
     <Pressable
-      style={({ pressed }) => [styles.button, pressed && styles.pressed]}
+      style={({ pressed }) => [
+        styles.button,
+        { backgroundColor: pressed ? c.cardPressed : c.card },
+      ]}
       onPress={onPress}
       disabled={!onPress}
     >
       <Text style={styles.flag}>{currencyToFlag(code)}</Text>
       <View style={styles.text}>
-        <Text style={styles.code}>{code}</Text>
+        <Text style={[styles.code, { color: c.text }]}>{code}</Text>
         {name !== undefined && name.length > 0 ? (
-          <Text style={styles.name} numberOfLines={1}>
+          <Text style={[styles.name, { color: c.textMuted }]} numberOfLines={1}>
             {name}
           </Text>
         ) : null}
@@ -36,11 +41,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 12,
     borderRadius: 12,
-    backgroundColor: '#f3f4f6',
   },
-  pressed: { opacity: 0.6 },
   flag: { fontSize: 28 },
   text: { flexShrink: 1 },
-  code: { fontSize: 16, fontWeight: '600', color: '#111' },
-  name: { fontSize: 11, color: '#666' },
+  code: { fontSize: 16, fontWeight: '600' },
+  name: { fontSize: 11 },
 });

@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { TimeRangeTabs } from '../components/TimeRangeTabs';
 import { useTimeSeries } from '../hooks/useTimeSeries';
 import { useAppStore } from '../store/useAppStore';
+import { useTheme } from '../theme/useTheme';
 import type { RootStackParamList } from '../types/navigation';
 import { formatXAxisLabel, pickLabelIndices } from '../utils/chartLabels';
 import { computeYScale } from '../utils/chartScale';
@@ -25,6 +26,7 @@ interface PointerItem {
 
 export function ChartScreen() {
   const navigation = useNavigation<Nav>();
+  const c = useTheme();
   const from = useAppStore((s) => s.from);
   const to = useAppStore((s) => s.to);
 
@@ -63,12 +65,15 @@ export function ChartScreen() {
   const xLabels = labelIndices.map((i) => formatXAxisLabel(data[i].date, range));
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'left', 'right', 'bottom']}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: c.bg }]}
+      edges={['top', 'left', 'right', 'bottom']}
+    >
       <View style={styles.header}>
         <Pressable onPress={() => navigation.goBack()} hitSlop={12} style={styles.headerSide}>
-          <Text style={styles.back}>Back</Text>
+          <Text style={[styles.back, { color: c.accent }]}>Back</Text>
         </Pressable>
-        <Text style={styles.title}>
+        <Text style={[styles.title, { color: c.text }]}>
           {from} → {to}
         </Text>
         <View style={styles.headerSide} />
@@ -80,11 +85,13 @@ export function ChartScreen() {
 
       <View style={styles.chartArea}>
         {error !== null ? (
-          <Text style={styles.error}>{error}</Text>
+          <Text style={[styles.error, { color: c.danger }]}>{error}</Text>
         ) : loading && data.length === 0 ? (
-          <ActivityIndicator />
+          <ActivityIndicator color={c.text} />
         ) : chartData.length < 2 ? (
-          <Text style={styles.empty}>Not enough data for this range.</Text>
+          <Text style={[styles.empty, { color: c.textFaint }]}>
+            Not enough data for this range.
+          </Text>
         ) : (
           <View style={{ width: plotWidth + yAxisLabelWidth }}>
             <LineChart
@@ -102,18 +109,18 @@ export function ChartScreen() {
               hideDataPoints
               curved
               thickness={2}
-              color="#0a84ff"
-              startFillColor="#0a84ff"
+              color={c.chartLine}
+              startFillColor={c.chartFill}
               startOpacity={0.18}
               endOpacity={0}
               areaChart
               disableScroll
-              yAxisTextStyle={styles.axisText}
-              xAxisColor="#e5e7eb"
-              yAxisColor="#e5e7eb"
-              rulesColor="#f3f4f6"
+              yAxisTextStyle={[styles.axisText, { color: c.textFaint }]}
+              xAxisColor={c.chartAxis}
+              yAxisColor={c.chartAxis}
+              rulesColor={c.chartRules}
               pointerConfig={{
-                pointerColor: '#0a84ff',
+                pointerColor: c.accent,
                 radius: 5,
                 activatePointersOnLongPress: false,
                 autoAdjustPointerLabelPosition: true,
@@ -123,11 +130,15 @@ export function ChartScreen() {
                   const displayed = item.originalRate ?? item.value + yMin;
                   const dateLabel = item.originalDate ?? item.label;
                   return (
-                    <View style={styles.tooltip}>
+                    <View style={[styles.tooltip, { backgroundColor: c.tooltipBg }]}>
                       {dateLabel !== undefined && dateLabel.length > 0 ? (
-                        <Text style={styles.tooltipDate}>{dateLabel}</Text>
+                        <Text style={[styles.tooltipDate, { color: c.tooltipFg }]}>
+                          {dateLabel}
+                        </Text>
                       ) : null}
-                      <Text style={styles.tooltipRate}>{formatAmount(displayed, 4)}</Text>
+                      <Text style={[styles.tooltipRate, { color: c.tooltipFg }]}>
+                        {formatAmount(displayed, 4)}
+                      </Text>
                     </View>
                   );
                 },
@@ -141,6 +152,7 @@ export function ChartScreen() {
                   key={`${i}-${label}`}
                   style={[
                     styles.xLabel,
+                    { color: c.textFaint },
                     i === 0 && styles.xLabelStart,
                     i === xLabels.length - 1 && styles.xLabelEnd,
                   ]}
@@ -155,26 +167,32 @@ export function ChartScreen() {
 
       {stats !== null ? (
         <View style={styles.stats}>
-          <Stat label="Min" value={formatAmount(stats.min, 4)} />
-          <Stat label="Max" value={formatAmount(stats.max, 4)} />
-          <Stat label="Avg" value={formatAmount(stats.avg, 4)} />
+          <Stat label="Min" value={formatAmount(stats.min, 4)} palette={c} />
+          <Stat label="Max" value={formatAmount(stats.max, 4)} palette={c} />
+          <Stat label="Avg" value={formatAmount(stats.avg, 4)} palette={c} />
         </View>
       ) : null}
     </SafeAreaView>
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+interface StatProps {
+  label: string;
+  value: string;
+  palette: ReturnType<typeof useTheme>;
+}
+
+function Stat({ label, value, palette }: StatProps) {
   return (
     <View style={styles.stat}>
-      <Text style={styles.statLabel}>{label}</Text>
-      <Text style={styles.statValue}>{value}</Text>
+      <Text style={[styles.statLabel, { color: palette.textMuted }]}>{label}</Text>
+      <Text style={[styles.statValue, { color: palette.text }]}>{value}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -184,8 +202,8 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   headerSide: { minWidth: 60 },
-  back: { fontSize: 16, color: '#0a84ff', fontWeight: '600' },
-  title: { fontSize: 18, fontWeight: '700', color: '#111' },
+  back: { fontSize: 16, fontWeight: '600' },
+  title: { fontSize: 18, fontWeight: '700' },
   tabs: { paddingHorizontal: 20, paddingBottom: 16 },
   chartArea: {
     paddingHorizontal: 16,
@@ -194,26 +212,25 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     overflow: 'hidden',
   },
-  axisText: { color: '#999', fontSize: 11 },
+  axisText: { fontSize: 11 },
   xLabelRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 6,
   },
-  xLabel: { fontSize: 11, color: '#999', flexShrink: 0 },
+  xLabel: { fontSize: 11, flexShrink: 0 },
   xLabelStart: { textAlign: 'left' },
   xLabelEnd: { textAlign: 'right' },
-  error: { color: '#c00', textAlign: 'center', paddingHorizontal: 24 },
-  empty: { color: '#888' },
+  error: { textAlign: 'center', paddingHorizontal: 24 },
+  empty: {},
   tooltip: {
-    backgroundColor: '#111',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 6,
     alignItems: 'center',
   },
-  tooltipDate: { color: '#fff', fontSize: 10 },
-  tooltipRate: { color: '#fff', fontSize: 14, fontWeight: '600' },
+  tooltipDate: { fontSize: 10 },
+  tooltipRate: { fontSize: 14, fontWeight: '600' },
   stats: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -221,6 +238,6 @@ const styles = StyleSheet.create({
     paddingTop: 24,
   },
   stat: { alignItems: 'center', gap: 4 },
-  statLabel: { fontSize: 12, color: '#666' },
-  statValue: { fontSize: 16, fontWeight: '600', color: '#111' },
+  statLabel: { fontSize: 12 },
+  statValue: { fontSize: 16, fontWeight: '600' },
 });
