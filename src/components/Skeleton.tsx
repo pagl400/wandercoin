@@ -29,7 +29,7 @@ export function Skeleton({ width, height, radius = 8, style }: SkeletonProps) {
     <Animated.View
       style={[
         styles.base,
-        { width, height, borderRadius: radius, backgroundColor: c.card, opacity },
+        { width, height, borderRadius: radius, backgroundColor: c.surfaceAlt, opacity },
         style,
       ]}
     />

@@ -12,6 +12,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Svg, { Circle, Path } from 'react-native-svg';
 
 import { useCurrencies } from '../hooks/useCurrencies';
 import { useAppStore } from '../store/useAppStore';
@@ -19,34 +20,44 @@ import { useTheme } from '../theme/useTheme';
 import type { RootStackParamList } from '../types/navigation';
 import { currencyToFlag } from '../utils/flags';
 
+type Nav = NativeStackNavigationProp<RootStackParamList, 'CurrencyPicker'>;
+type PickerRoute = RouteProp<RootStackParamList, 'CurrencyPicker'>;
+
 interface Row {
   code: string;
   name: string;
   favorite: boolean;
 }
 
-type Nav = NativeStackNavigationProp<RootStackParamList, 'CurrencyPicker'>;
-type PickerRoute = RouteProp<RootStackParamList, 'CurrencyPicker'>;
-
 export function CurrencyPickerScreen() {
   const navigation = useNavigation<Nav>();
   const { params } = useRoute<PickerRoute>();
   const field = params.field;
   const c = useTheme();
+  const isAndroid = c.platform === 'android';
 
   const { data: currencies, loading, error } = useCurrencies();
+  const from = useAppStore((s) => s.from);
+  const to = useAppStore((s) => s.to);
   const favorites = useAppStore((s) => s.favorites);
-  const toggleFavorite = useAppStore((s) => s.toggleFavorite);
   const setFrom = useAppStore((s) => s.setFrom);
   const setTo = useAppStore((s) => s.setTo);
+  const toggleFavorite = useAppStore((s) => s.toggleFavorite);
 
   const [query, setQuery] = useState('');
+
+  const currentForField = field === 'from' ? from : to;
+  const otherForField = field === 'from' ? to : from;
 
   const rows = useMemo<Row[]>(() => {
     if (currencies === null) return [];
     const q = query.trim().toLowerCase();
     return Object.entries(currencies)
-      .map(([code, name]) => ({ code, name, favorite: favorites.includes(code) }))
+      .map(([code, name]) => ({
+        code,
+        name,
+        favorite: favorites.includes(code),
+      }))
       .filter(
         ({ code, name }) =>
           q === '' || code.toLowerCase().includes(q) || name.toLowerCase().includes(q),
@@ -58,35 +69,64 @@ export function CurrencyPickerScreen() {
   }, [currencies, query, favorites]);
 
   const select = (code: string) => {
-    if (field === 'from') setFrom(code);
-    else setTo(code);
+    if (code === otherForField) {
+      if (field === 'from') {
+        setTo(from);
+        setFrom(code);
+      } else {
+        setFrom(to);
+        setTo(code);
+      }
+    } else if (field === 'from') {
+      setFrom(code);
+    } else {
+      setTo(code);
+    }
     navigation.goBack();
   };
 
   return (
     <SafeAreaView
-      style={[styles.container, { backgroundColor: c.bg }]}
+      style={[styles.container, { backgroundColor: c.surface }]}
       edges={['top', 'left', 'right', 'bottom']}
     >
-      <View style={styles.header}>
+      <View style={styles.handleWrap}>
+        <View style={[styles.handle, { backgroundColor: c.textTer }]} />
+      </View>
+
+      <View style={styles.headerRow}>
         <Text style={[styles.title, { color: c.text }]}>Select currency</Text>
         <Pressable onPress={() => navigation.goBack()} hitSlop={12}>
-          <Text style={[styles.close, { color: c.accent }]}>Done</Text>
+          <Text style={[styles.done, { color: c.accent }]}>Done</Text>
         </Pressable>
       </View>
 
-      <TextInput
-        style={[styles.search, { backgroundColor: c.inputBg, color: c.inputText }]}
-        value={query}
-        onChangeText={setQuery}
-        placeholder="Search code or name"
-        placeholderTextColor={c.inputPlaceholder}
-        autoCorrect={false}
-        autoCapitalize="none"
-      />
+      <View style={styles.searchWrap}>
+        <View style={[styles.searchField, { backgroundColor: c.surfaceAlt }]}>
+          <Svg width={16} height={16} viewBox="0 0 24 24">
+            <Circle cx={11} cy={11} r={7} stroke={c.textSec} strokeWidth={2.5} fill="none" />
+            <Path
+              d="M21 21l-4.3-4.3"
+              stroke={c.textSec}
+              strokeWidth={2.5}
+              strokeLinecap="round"
+              fill="none"
+            />
+          </Svg>
+          <TextInput
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Search"
+            placeholderTextColor={c.textSec}
+            autoCorrect={false}
+            autoCapitalize="none"
+            style={[styles.searchInput, { color: c.text }]}
+          />
+        </View>
+      </View>
 
       {error !== null ? (
-        <Text style={[styles.error, { color: c.danger }]}>{error}</Text>
+        <Text style={[styles.error, { color: c.neg }]}>{error}</Text>
       ) : loading && currencies === null ? (
         <ActivityIndicator style={styles.loader} color={c.text} />
       ) : (
@@ -94,35 +134,73 @@ export function CurrencyPickerScreen() {
           data={rows}
           keyExtractor={(r) => r.code}
           keyboardShouldPersistTaps="handled"
-          renderItem={({ item }) => (
-            <Pressable
-              style={({ pressed }) => [
-                styles.row,
-                pressed && { backgroundColor: c.cardPressed },
-              ]}
-              onPress={() => select(item.code)}
-            >
-              <Text style={styles.flag}>{currencyToFlag(item.code)}</Text>
-              <View style={styles.rowText}>
-                <Text style={[styles.code, { color: c.text }]}>{item.code}</Text>
-                <Text style={[styles.name, { color: c.textMuted }]} numberOfLines={1}>
-                  {item.name}
-                </Text>
-              </View>
+          contentContainerStyle={styles.listContent}
+          renderItem={({ item }) => {
+            const active = item.code === currentForField;
+            return (
               <Pressable
-                hitSlop={12}
-                onPress={() => toggleFavorite(item.code)}
-                accessibilityRole="button"
-                accessibilityLabel={item.favorite ? 'Remove favorite' : 'Add favorite'}
+                onPress={() => select(item.code)}
+                style={({ pressed }) => [
+                  styles.row,
+                  {
+                    backgroundColor: active
+                      ? c.accentSoft
+                      : pressed
+                        ? c.surfaceAlt
+                        : 'transparent',
+                    borderRadius: isAndroid ? 14 : 14,
+                  },
+                ]}
               >
-                <Text style={[styles.star, { color: item.favorite ? c.starActive : c.star }]}>
-                  ★
-                </Text>
+                <View style={styles.flagWrap}>
+                  <Text style={styles.flag}>{currencyToFlag(item.code)}</Text>
+                </View>
+                <View style={styles.rowText}>
+                  <Text style={[styles.code, { color: active ? c.accent : c.text }]}>
+                    {item.code}
+                  </Text>
+                  <Text style={[styles.name, { color: c.textSec }]} numberOfLines={1}>
+                    {item.name}
+                  </Text>
+                </View>
+                <Pressable
+                  hitSlop={10}
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    toggleFavorite(item.code);
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel={item.favorite ? 'Remove favorite' : 'Add favorite'}
+                  style={styles.starBtn}
+                >
+                  <Text
+                    style={{
+                      fontSize: 20,
+                      color: item.favorite ? c.accent : c.textTer,
+                    }}
+                  >
+                    {item.favorite ? '★' : '☆'}
+                  </Text>
+                </Pressable>
+                {active ? (
+                  <Svg width={20} height={20} viewBox="0 0 24 24">
+                    <Path
+                      d="M5 12l5 5L20 7"
+                      stroke={c.accent}
+                      strokeWidth={2.5}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      fill="none"
+                    />
+                  </Svg>
+                ) : (
+                  <View style={styles.checkSpacer} />
+                )}
               </Pressable>
-            </Pressable>
-          )}
+            );
+          }}
           ListEmptyComponent={
-            <Text style={[styles.empty, { color: c.textFaint }]}>
+            <Text style={[styles.empty, { color: c.textTer }]}>
               No currencies match &ldquo;{query}&rdquo;.
             </Text>
           }
@@ -134,36 +212,47 @@ export function CurrencyPickerScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: {
+  handleWrap: { paddingTop: 6, paddingBottom: 10, alignItems: 'center' },
+  handle: { width: 36, height: 5, borderRadius: 3 },
+  headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 8,
+    paddingTop: 4,
     paddingBottom: 12,
   },
-  title: { fontSize: 20, fontWeight: '700' },
-  close: { fontSize: 16, fontWeight: '600' },
-  search: {
-    marginHorizontal: 20,
-    marginBottom: 12,
-    paddingHorizontal: 14,
+  title: { fontSize: 19, fontWeight: '600' },
+  done: { fontSize: 15, fontWeight: '500' },
+  searchWrap: { paddingHorizontal: 16, paddingBottom: 12 },
+  searchField: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderRadius: 12,
     paddingVertical: 10,
-    borderRadius: 10,
-    fontSize: 16,
+    paddingHorizontal: 12,
   },
+  searchInput: { flex: 1, fontSize: 15, padding: 0 },
+  listContent: { paddingHorizontal: 8, paddingBottom: 12 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    paddingHorizontal: 20,
+    paddingHorizontal: 14,
     paddingVertical: 12,
   },
-  flag: { fontSize: 24 },
+  flagWrap: { width: 36, alignItems: 'center' },
+  flag: { fontSize: 28, lineHeight: 30 },
   rowText: { flex: 1 },
   code: { fontSize: 16, fontWeight: '600' },
-  name: { fontSize: 12 },
-  star: { fontSize: 22 },
+  name: { fontSize: 13, marginTop: 1 },
+  starBtn: {
+    width: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkSpacer: { width: 20 },
   empty: { textAlign: 'center', marginTop: 32 },
   error: { textAlign: 'center', marginTop: 32, paddingHorizontal: 20 },
   loader: { marginTop: 24 },

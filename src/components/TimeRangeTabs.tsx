@@ -12,22 +12,28 @@ interface TimeRangeTabsProps {
 export function TimeRangeTabs({ value, onChange }: TimeRangeTabsProps) {
   const c = useTheme();
   return (
-    <View style={[styles.container, { backgroundColor: c.card }]}>
+    <View style={styles.row}>
       {TIME_RANGES.map((r) => {
         const active = r === value;
         return (
           <Pressable
             key={r}
             onPress={() => onChange(r)}
-            style={[styles.tab, active && { backgroundColor: c.bg }]}
             accessibilityRole="tab"
             accessibilityState={{ selected: active }}
+            style={({ pressed }) => [
+              styles.pill,
+              {
+                backgroundColor: active ? c.accentSoft : 'transparent',
+                opacity: pressed ? 0.6 : 1,
+              },
+            ]}
           >
             <Text
               style={[
                 styles.label,
                 {
-                  color: active ? c.text : c.textMuted,
+                  color: active ? c.accent : c.textSec,
                   fontWeight: active ? '600' : '500',
                 },
               ]}
@@ -42,16 +48,17 @@ export function TimeRangeTabs({ value, onChange }: TimeRangeTabsProps) {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  row: {
     flexDirection: 'row',
-    borderRadius: 10,
-    padding: 4,
+    gap: 4,
+    paddingTop: 6,
+    paddingBottom: 12,
   },
-  tab: {
+  pill: {
     flex: 1,
     paddingVertical: 8,
     alignItems: 'center',
-    borderRadius: 8,
+    borderRadius: 10,
   },
   label: { fontSize: 13 },
 });

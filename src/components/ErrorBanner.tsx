@@ -9,7 +9,7 @@ interface ErrorBannerProps {
 export function ErrorBanner({ message }: ErrorBannerProps) {
   const c = useTheme();
   return (
-    <View style={[styles.container, { backgroundColor: c.danger }]}>
+    <View style={[styles.container, { backgroundColor: c.neg }]}>
       <Text style={styles.text}>{message}</Text>
     </View>
   );

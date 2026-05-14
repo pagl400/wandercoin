@@ -1,9 +1,11 @@
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { format } from 'date-fns';
+import { useCallback, useState } from 'react';
 import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { clearCache } from '../services/cache';
+import { clearCache, getLatestSyncTime } from '../services/cache';
 import { useAppStore } from '../store/useAppStore';
 import type { Decimals, Theme } from '../store/useAppStore';
 import { useTheme } from '../theme/useTheme';
@@ -13,7 +15,8 @@ type Nav = NativeStackNavigationProp<RootStackParamList, 'Settings'>;
 
 const APP_VERSION = '1.0.0';
 
-const PRIVACY_URL = 'https://example.com/privacy';
+const PRIVACY_URL = 'https://pagl400.github.io/wandercoin/privacy/';
+const IMPRINT_URL = 'https://pagl400.github.io/wandercoin/impressum/';
 
 const THEME_OPTIONS: { value: Theme; label: string }[] = [
   { value: 'system', label: 'System' },
@@ -27,14 +30,40 @@ const DECIMAL_OPTIONS: { value: Decimals; label: string }[] = [
   { value: 4, label: '4' },
 ];
 
+function formatSyncTime(d: Date): string {
+  const now = new Date();
+  const sameDay =
+    d.getFullYear() === now.getFullYear() &&
+    d.getMonth() === now.getMonth() &&
+    d.getDate() === now.getDate();
+  return sameDay ? `Today, ${format(d, 'HH:mm')}` : format(d, 'MMM d, HH:mm');
+}
+
 export function SettingsScreen() {
   const navigation = useNavigation<Nav>();
   const c = useTheme();
 
   const theme = useAppStore((s) => s.theme);
   const decimals = useAppStore((s) => s.decimals);
+  const from = useAppStore((s) => s.from);
+  const to = useAppStore((s) => s.to);
   const setTheme = useAppStore((s) => s.setTheme);
   const setDecimals = useAppStore((s) => s.setDecimals);
+
+  const [lastSync, setLastSync] = useState<Date | null>(null);
+
+  const reloadSync = useCallback(() => {
+    void (async () => {
+      const ts = await getLatestSyncTime(from, to);
+      setLastSync(ts !== null ? new Date(ts) : null);
+    })();
+  }, [from, to]);
+
+  useFocusEffect(
+    useCallback(() => {
+      reloadSync();
+    }, [reloadSync]),
+  );
 
   const handleResetCache = () => {
     Alert.alert('Reset cache?', 'All locally stored rates and currencies will be removed.', [
@@ -43,7 +72,10 @@ export function SettingsScreen() {
         text: 'Reset',
         style: 'destructive',
         onPress: () => {
-          void clearCache();
+          void (async () => {
+            await clearCache();
+            setLastSync(null);
+          })();
         },
       },
     ]);
@@ -60,7 +92,7 @@ export function SettingsScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        <Section title="Appearance" textColor={c.textMuted}>
+        <Section title="Appearance" textColor={c.textSec}>
           <Segmented
             options={THEME_OPTIONS}
             value={theme}
@@ -69,7 +101,7 @@ export function SettingsScreen() {
           />
         </Section>
 
-        <Section title="Decimals" textColor={c.textMuted}>
+        <Section title="Decimals" textColor={c.textSec}>
           <Segmented
             options={DECIMAL_OPTIONS}
             value={decimals}
@@ -78,37 +110,59 @@ export function SettingsScreen() {
           />
         </Section>
 
-        <Section title="Data" textColor={c.textMuted}>
+        <Section title="Data" textColor={c.textSec}>
+          <View style={[styles.row, { backgroundColor: c.surfaceAlt }]}>
+            <Text style={[styles.rowLabel, { color: c.text }]}>Last sync</Text>
+            <Text style={[styles.rowValue, { color: c.textSec }]}>
+              {lastSync !== null ? formatSyncTime(lastSync) : 'Never'}
+            </Text>
+          </View>
+          <View style={[styles.row, { backgroundColor: c.surfaceAlt }]}>
+            <Text style={[styles.rowLabel, { color: c.text }]}>Refresh cadence</Text>
+            <Text style={[styles.rowValue, { color: c.textSec }]}>≤ 1× per hour</Text>
+          </View>
           <Pressable
             style={({ pressed }) => [
               styles.row,
-              { backgroundColor: pressed ? c.cardPressed : c.card },
+              { backgroundColor: pressed ? c.surfaceHi : c.surfaceAlt },
             ]}
             onPress={handleResetCache}
           >
-            <Text style={[styles.rowLabel, { color: c.danger }]}>Reset cache</Text>
+            <Text style={[styles.rowLabel, { color: c.neg }]}>Reset cache</Text>
           </Pressable>
         </Section>
 
-        <Section title="About" textColor={c.textMuted}>
-          <View style={[styles.row, { backgroundColor: c.card }]}>
+        <Section title="About" textColor={c.textSec}>
+          <View style={[styles.row, { backgroundColor: c.surfaceAlt }]}>
             <Text style={[styles.rowLabel, { color: c.text }]}>Data source</Text>
-            <Text style={[styles.rowValue, { color: c.textMuted }]}>ECB via Frankfurter</Text>
+            <Text style={[styles.rowValue, { color: c.textSec }]}>ECB via Frankfurter</Text>
           </View>
-          <View style={[styles.row, { backgroundColor: c.card }]}>
+          <View style={[styles.row, { backgroundColor: c.surfaceAlt }]}>
             <Text style={[styles.rowLabel, { color: c.text }]}>Version</Text>
-            <Text style={[styles.rowValue, { color: c.textMuted }]}>{APP_VERSION}</Text>
+            <Text style={[styles.rowValue, { color: c.textSec }]}>{APP_VERSION}</Text>
           </View>
           <Pressable
             style={({ pressed }) => [
               styles.row,
-              { backgroundColor: pressed ? c.cardPressed : c.card },
+              { backgroundColor: pressed ? c.surfaceHi : c.surfaceAlt },
             ]}
             onPress={() => {
               void Linking.openURL(PRIVACY_URL);
             }}
           >
             <Text style={[styles.rowLabel, { color: c.text }]}>Privacy policy</Text>
+            <Text style={[styles.rowValue, { color: c.accent }]}>Open</Text>
+          </Pressable>
+          <Pressable
+            style={({ pressed }) => [
+              styles.row,
+              { backgroundColor: pressed ? c.surfaceHi : c.surfaceAlt },
+            ]}
+            onPress={() => {
+              void Linking.openURL(IMPRINT_URL);
+            }}
+          >
+            <Text style={[styles.rowLabel, { color: c.text }]}>Impressum</Text>
             <Text style={[styles.rowValue, { color: c.accent }]}>Open</Text>
           </Pressable>
         </Section>
@@ -146,13 +200,13 @@ function Segmented<T extends string | number>({
   palette,
 }: SegmentedProps<T>) {
   return (
-    <View style={[styles.segmented, { backgroundColor: palette.card }]}>
+    <View style={[styles.segmented, { backgroundColor: palette.surfaceAlt }]}>
       {options.map((opt) => {
         const active = opt.value === value;
         return (
           <Pressable
             key={String(opt.value)}
-            style={[styles.segment, active && { backgroundColor: palette.bg }]}
+            style={[styles.segment, active && { backgroundColor: palette.surface }]}
             onPress={() => onChange(opt.value)}
             accessibilityRole="button"
             accessibilityState={{ selected: active }}
@@ -160,7 +214,10 @@ function Segmented<T extends string | number>({
             <Text
               style={[
                 styles.segmentLabel,
-                { color: active ? palette.text : palette.textMuted, fontWeight: active ? '600' : '500' },
+                {
+                  color: active ? palette.text : palette.textSec,
+                  fontWeight: active ? '600' : '500',
+                },
               ]}
             >
               {opt.label}

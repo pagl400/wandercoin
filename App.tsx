@@ -3,7 +3,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { ChartScreen } from './src/screens/ChartScreen';
 import { ConverterScreen } from './src/screens/ConverterScreen';
 import { CurrencyPickerScreen } from './src/screens/CurrencyPickerScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
@@ -42,7 +41,6 @@ function ThemedApp() {
         }}
       >
         <Stack.Screen name="Converter" component={ConverterScreen} />
-        <Stack.Screen name="Chart" component={ChartScreen} />
         <Stack.Screen name="Settings" component={SettingsScreen} />
         <Stack.Screen
           name="CurrencyPicker"

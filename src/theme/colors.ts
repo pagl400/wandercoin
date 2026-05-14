@@ -1,77 +1,106 @@
 export interface Palette {
   bg: string;
-  card: string;
-  cardPressed: string;
-  text: string;
-  textMuted: string;
-  textFaint: string;
+  surface: string;
+  surfaceAlt: string;
+  surfaceHi: string;
   border: string;
+  text: string;
+  textSec: string;
+  textTer: string;
   accent: string;
-  danger: string;
-  swapBg: string;
-  swapFg: string;
-  star: string;
-  starActive: string;
-  inputBg: string;
-  inputText: string;
-  inputPlaceholder: string;
-  chartLine: string;
-  chartFill: string;
-  chartAxis: string;
-  chartRules: string;
-  tooltipBg: string;
-  tooltipFg: string;
+  accentSoft: string;
+  pos: string;
+  neg: string;
+  numpadBg: string;
+  numpadKeyBg: string;
+  numpadKeyShadow: string | null;
   scheme: 'light' | 'dark';
+  platform: 'ios' | 'android';
 }
 
-export const lightColors: Palette = {
-  bg: '#ffffff',
-  card: '#f2f2f7',
-  cardPressed: '#e5e5ea',
+const ACCENT = '#0a84ff';
+
+const lightIos: Palette = {
+  bg: '#f2f2f7',
+  surface: '#ffffff',
+  surfaceAlt: '#f2f2f7',
+  surfaceHi: '#e5e5ea',
+  border: 'rgba(0,0,0,0.06)',
   text: '#000000',
-  textMuted: '#3c3c43cc',
-  textFaint: '#3c3c4399',
-  border: '#3c3c432e',
-  accent: '#007aff',
-  danger: '#ff3b30',
-  swapBg: '#000000',
-  swapFg: '#ffffff',
-  star: '#d1d1d6',
-  starActive: '#ffcc00',
-  inputBg: '#f2f2f7',
-  inputText: '#000000',
-  inputPlaceholder: '#3c3c4399',
-  chartLine: '#007aff',
-  chartFill: '#007aff',
-  chartAxis: '#e5e5ea',
-  chartRules: '#f2f2f7',
-  tooltipBg: '#1c1c1e',
-  tooltipFg: '#ffffff',
+  textSec: 'rgba(60,60,67,0.6)',
+  textTer: 'rgba(60,60,67,0.3)',
+  accent: ACCENT,
+  accentSoft: ACCENT + '1f',
+  pos: '#16a34a',
+  neg: '#dc2626',
+  numpadBg: '#d1d3d9',
+  numpadKeyBg: '#fcfcfe',
+  numpadKeyShadow: 'rgba(0,0,0,0.15)',
   scheme: 'light',
+  platform: 'ios',
 };
 
-export const darkColors: Palette = {
-  bg: '#1c1c1e',
-  card: '#2c2c2e',
-  cardPressed: '#3a3a3c',
+const darkIos: Palette = {
+  bg: '#000000',
+  surface: '#1c1c1e',
+  surfaceAlt: '#2c2c2e',
+  surfaceHi: '#3a3a3c',
+  border: 'rgba(255,255,255,0.08)',
   text: '#ffffff',
-  textMuted: '#ebebf5cc',
-  textFaint: '#ebebf599',
-  border: '#54545899',
-  accent: '#0a84ff',
-  danger: '#ff453a',
-  swapBg: '#ffffff',
-  swapFg: '#000000',
-  star: '#48484a',
-  starActive: '#ffd60a',
-  inputBg: '#2c2c2e',
-  inputText: '#ffffff',
-  inputPlaceholder: '#ebebf599',
-  chartLine: '#0a84ff',
-  chartFill: '#0a84ff',
-  chartAxis: '#38383a',
-  chartRules: '#2c2c2e',
-  tooltipBg: '#2c2c2e',
-  tooltipFg: '#ffffff',
+  textSec: 'rgba(235,235,245,0.6)',
+  textTer: 'rgba(235,235,245,0.35)',
+  accent: ACCENT,
+  accentSoft: ACCENT + '26',
+  pos: '#34c759',
+  neg: '#ff453a',
+  numpadBg: '#000000',
+  numpadKeyBg: '#636366',
+  numpadKeyShadow: 'rgba(0,0,0,0.15)',
   scheme: 'dark',
+  platform: 'ios',
 };
+
+const lightAndroid: Palette = {
+  bg: '#fbf8ff',
+  surface: '#ffffff',
+  surfaceAlt: '#eee8f4',
+  surfaceHi: '#e7e0ec',
+  border: 'rgba(0,0,0,0.06)',
+  text: '#1c1b1f',
+  textSec: 'rgba(60,60,67,0.6)',
+  textTer: 'rgba(60,60,67,0.3)',
+  accent: ACCENT,
+  accentSoft: ACCENT + '1f',
+  pos: '#16a34a',
+  neg: '#dc2626',
+  numpadBg: '#f0eaf6',
+  numpadKeyBg: '#ffffff',
+  numpadKeyShadow: null,
+  scheme: 'light',
+  platform: 'android',
+};
+
+const darkAndroid: Palette = {
+  bg: '#101014',
+  surface: '#1c1b1f',
+  surfaceAlt: '#2a282d',
+  surfaceHi: '#36343a',
+  border: 'rgba(255,255,255,0.08)',
+  text: '#ffffff',
+  textSec: 'rgba(235,235,245,0.6)',
+  textTer: 'rgba(235,235,245,0.35)',
+  accent: ACCENT,
+  accentSoft: ACCENT + '26',
+  pos: '#34c759',
+  neg: '#ff453a',
+  numpadBg: '#16151a',
+  numpadKeyBg: '#2a282d',
+  numpadKeyShadow: null,
+  scheme: 'dark',
+  platform: 'android',
+};
+
+export function paletteFor(scheme: 'light' | 'dark', platform: 'ios' | 'android'): Palette {
+  if (platform === 'android') return scheme === 'dark' ? darkAndroid : lightAndroid;
+  return scheme === 'dark' ? darkIos : lightIos;
+}

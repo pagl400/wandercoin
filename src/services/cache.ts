@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface CacheEntry<T> {
   value: T;
+  cachedAt: number;
   expiresAt: number;
 }
 
@@ -23,7 +24,8 @@ export async function getCached<T>(
     }
   }
   const value = await fetcher();
-  const entry: CacheEntry<T> = { value, expiresAt: Date.now() + ttlMs };
+  const now = Date.now();
+  const entry: CacheEntry<T> = { value, cachedAt: now, expiresAt: now + ttlMs };
   await AsyncStorage.setItem(fullKey, JSON.stringify(entry));
   return value;
 }
@@ -57,4 +59,30 @@ export async function getStale<T>(key: string): Promise<T | null> {
   } catch {
     return null;
   }
+}
+
+export async function getCacheMeta(
+  key: string,
+): Promise<{ cachedAt: number; expiresAt: number } | null> {
+  const raw = await AsyncStorage.getItem(PREFIX + key);
+  if (raw === null) return null;
+  try {
+    const entry = JSON.parse(raw) as Partial<CacheEntry<unknown>>;
+    if (typeof entry.expiresAt !== 'number') return null;
+    return {
+      cachedAt: typeof entry.cachedAt === 'number' ? entry.cachedAt : entry.expiresAt,
+      expiresAt: entry.expiresAt,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function getLatestSyncTime(
+  from: string,
+  to: string,
+): Promise<number | null> {
+  if (from === to) return null;
+  const meta = await getCacheMeta(`latest:${from}:${to}`);
+  return meta?.cachedAt ?? null;
 }

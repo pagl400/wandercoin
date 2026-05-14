@@ -12,11 +12,13 @@ import {
 
 export type Theme = 'system' | 'light' | 'dark';
 export type Decimals = 0 | 2 | 4;
+export type Side = 'from' | 'to';
 
 interface AppState {
   from: string;
   to: string;
   amount: string;
+  activeSide: Side;
   favorites: string[];
   theme: Theme;
   decimals: Decimals;
@@ -24,6 +26,7 @@ interface AppState {
   setFrom: (c: string) => void;
   setTo: (c: string) => void;
   setAmount: (a: string) => void;
+  setActiveSide: (s: Side) => void;
   swap: () => void;
   toggleFavorite: (c: string) => void;
   setTheme: (t: Theme) => void;
@@ -36,6 +39,7 @@ export const useAppStore = create<AppState>()(
       from: DEFAULT_FROM,
       to: DEFAULT_TO,
       amount: DEFAULT_AMOUNT,
+      activeSide: 'from',
       favorites: [...DEFAULT_FAVORITES],
       theme: 'system',
       decimals: DEFAULT_DECIMALS,
@@ -43,6 +47,7 @@ export const useAppStore = create<AppState>()(
       setFrom: (c) => set({ from: c }),
       setTo: (c) => set({ to: c }),
       setAmount: (a) => set({ amount: a }),
+      setActiveSide: (s) => set({ activeSide: s }),
       swap: () => set((s) => ({ from: s.to, to: s.from })),
       toggleFavorite: (c) =>
         set((s) => ({
@@ -56,7 +61,7 @@ export const useAppStore = create<AppState>()(
     {
       name: 'wandercoin-store',
       storage: createJSONStorage(() => AsyncStorage),
-      version: 1,
+      version: 2,
     },
   ),
 );
