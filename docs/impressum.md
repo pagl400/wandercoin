@@ -8,18 +8,18 @@ permalink: /impressum/
 
 ## Angaben gemäß § 5 TMG
 
-{{NAME}}
-{{STRASSE_UND_HAUSNUMMER}}
-{{PLZ}} {{STADT}}
+Pascal Glöde
+Straßburger Str. 8
+58332 Schwelm
 Deutschland
 
 ## Kontakt
 
-E-Mail: {{KONTAKT_EMAIL}}
+E-Mail: pagl400@googlemail.com
 
 ## Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV
 
-{{NAME}}, Anschrift wie oben
+Pascal Glöde, Anschrift wie oben
 
 ## Streitschlichtung
 
@@ -48,5 +48,5 @@ Daten kann trotz sorgfältiger Prüfung keine Gewähr übernommen werden.
 
 ## Urheberrecht
 
-Der App-Code ist Eigentum von {{NAME}}. Die Wechselkurs­daten werden
+Der App-Code ist Eigentum von Pascal Glöde. Die Wechselkurs­daten werden
 unter der Open-Data-Lizenz der EZB bereitgestellt.
