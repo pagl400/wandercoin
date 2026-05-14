@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { LATEST_TTL_MS } from '../constants';
-import { getCached } from '../services/cache';
+import { getCached, getStale } from '../services/cache';
 import { fetchLatest } from '../services/frankfurterApi';
 import type { LatestRate } from '../types/currency';
 
@@ -9,6 +9,7 @@ interface LatestRateState {
   data: LatestRate | null;
   error: string | null;
   loading: boolean;
+  stale: boolean;
 }
 
 export function useLatestRate(from: string, to: string): LatestRateState {
@@ -16,6 +17,7 @@ export function useLatestRate(from: string, to: string): LatestRateState {
     data: null,
     error: null,
     loading: true,
+    stale: false,
   });
 
   useEffect(() => {
@@ -30,23 +32,28 @@ export function useLatestRate(from: string, to: string): LatestRateState {
         },
         error: null,
         loading: false,
+        stale: false,
       });
       return () => {
         cancelled = true;
       };
     }
 
+    const cacheKey = `latest:${from}:${to}`;
     setState((s) => ({ ...s, loading: true, error: null }));
     void (async () => {
       try {
-        const data = await getCached(`latest:${from}:${to}`, LATEST_TTL_MS, () =>
-          fetchLatest(from, [to]),
-        );
-        if (!cancelled) setState({ data, error: null, loading: false });
+        const data = await getCached(cacheKey, LATEST_TTL_MS, () => fetchLatest(from, [to]));
+        if (!cancelled) setState({ data, error: null, loading: false, stale: false });
       } catch (e) {
-        if (!cancelled) {
-          const msg = e instanceof Error ? e.message : String(e);
-          setState({ data: null, error: msg, loading: false });
+        if (cancelled) return;
+        const msg = e instanceof Error ? e.message : String(e);
+        const stale = await getStale<LatestRate>(cacheKey);
+        if (cancelled) return;
+        if (stale !== null) {
+          setState({ data: stale, error: msg, loading: false, stale: true });
+        } else {
+          setState({ data: null, error: msg, loading: false, stale: false });
         }
       }
     })();

@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text } from 'react-native';
+import * as Haptics from 'expo-haptics';
+import { Platform, Pressable, StyleSheet, Text } from 'react-native';
 
 import { useTheme } from '../theme/useTheme';
 
@@ -8,13 +9,21 @@ interface SwapButtonProps {
 
 export function SwapButton({ onPress }: SwapButtonProps) {
   const c = useTheme();
+
+  const handlePress = () => {
+    if (Platform.OS === 'ios') {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    onPress();
+  };
+
   return (
     <Pressable
       style={({ pressed }) => [
         styles.button,
         { backgroundColor: c.swapBg, opacity: pressed ? 0.7 : 1 },
       ]}
-      onPress={onPress}
+      onPress={handlePress}
       accessibilityRole="button"
       accessibilityLabel="Swap currencies"
     >

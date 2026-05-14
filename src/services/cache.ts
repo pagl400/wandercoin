@@ -47,3 +47,14 @@ export async function getRaw<T>(key: string): Promise<T | null> {
 export async function setRaw<T>(key: string, value: T): Promise<void> {
   await AsyncStorage.setItem(PREFIX + key, JSON.stringify(value));
 }
+
+export async function getStale<T>(key: string): Promise<T | null> {
+  const raw = await AsyncStorage.getItem(PREFIX + key);
+  if (raw === null) return null;
+  try {
+    const entry = JSON.parse(raw) as CacheEntry<T>;
+    return entry.value;
+  } catch {
+    return null;
+  }
+}
